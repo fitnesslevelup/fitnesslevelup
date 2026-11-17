@@ -23,6 +23,8 @@ const NAV = [
 
 export function AppShell({ children }: { children: ReactNode }) {
   useEffect(() => {
+    // Ask the browser to keep saved progress even when the device is low on space.
+    void navigator.storage?.persist?.().catch(() => undefined);
     const id = window.setInterval(checkDay, 30_000);
     const onVis = () => document.visibilityState === "visible" && checkDay();
     document.addEventListener("visibilitychange", onVis);
