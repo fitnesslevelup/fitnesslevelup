@@ -12,9 +12,38 @@ import {
 } from "./engine";
 
 const KEY = "arise-system-v1";
+const BACKUP_KEY = "arise-system-v1-unreadable-backup";
 let state: GameState | null = null;
 let wallOpen = false;
+let warnedSaveFail = false;
 const listeners = new Set<() => void>();
+
+/** Fill in any fields missing from an older or partial save instead of starting over. */
+function normalize(raw: unknown): GameState | null {
+  if (!raw || typeof raw !== "object") return null;
+  const base = createState(todayKey());
+  const r = raw as Partial<GameState>;
+  return {
+    ...base,
+    ...r,
+    statPoints: { ...base.statPoints, ...(r.statPoints ?? {}) },
+    progress: { ...base.progress, ...(r.progress ?? {}) },
+    poses: Array.isArray(r.poses) ? r.poses : [],
+    completed: Array.isArray(r.completed) ? r.completed : [],
+  };
+}
+
+function readSaved(): GameState | null {
+  const raw = localStorage.getItem(KEY);
+  if (!raw) return null;
+  try {
+    return normalize(JSON.parse(raw));
+  } catch {
+    // Never silently wipe an unreadable save: keep a copy before starting fresh.
+    localStorage.setItem(BACKUP_KEY, raw);
+    return null;
+  }
+}
 
 function emit() {
   listeners.forEach((l) => l());
@@ -24,16 +53,41 @@ function persist() {
   try {
     if (state) localStorage.setItem(KEY, JSON.stringify(state));
   } catch {
-    /* storage full or blocked */
+    if (!warnedSaveFail) {
+      warnedSaveFail = true;
+      toast.error("[SYSTEM] Progress could not be saved", {
+        description: "Your browser is blocking storage (private window or full storage). Use a normal window to keep progress.",
+        duration: 10000,
+      });
+    }
   }
+}
+
+// Another open tab saved newer progress: adopt it so this tab never overwrites it with old data.
+let listening = false;
+function listenForOtherTabs() {
+  if (listening || typeof window === "undefined") return;
+  listening = true;
+  window.addEventListener("storage", (e) => {
+    if (e.key !== KEY || !e.newValue) return;
+    try {
+      const next = normalize(JSON.parse(e.newValue));
+      if (next) {
+        state = next;
+        emit();
+      }
+    } catch {
+      /* ignore */
+    }
+  });
 }
 
 function ensureLoaded(): GameState {
   if (state) return state;
+  listenForOtherTabs();
   let loaded: GameState | null = null;
   try {
-    const raw = localStorage.getItem(KEY);
-    if (raw) loaded = JSON.parse(raw) as GameState;
+    loaded = readSaved();
   } catch {
     loaded = null;
   }
@@ -68,8 +122,19 @@ export function setWallOpen(open: boolean) {
   emit();
 }
 
+function latest(): GameState {
+  // Re-read the saved copy before every change so a stale tab can't roll progress back.
+  try {
+    const saved = readSaved();
+    if (saved) state = saved;
+  } catch {
+    /* storage blocked: keep in-memory state */
+  }
+  return ensureLoaded();
+}
+
 export function act(fn: (s: GameState) => Result) {
-  const r = fn(ensureLoaded());
+  const r = fn(latest());
   state = r.state;
   persist();
   emit();
@@ -77,7 +142,7 @@ export function act(fn: (s: GameState) => Result) {
 }
 
 export function update(patch: Partial<GameState>) {
-  state = { ...ensureLoaded(), ...patch };
+  state = { ...latest(), ...patch };
   persist();
   emit();
 }
