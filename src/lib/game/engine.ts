@@ -1,12 +1,15 @@
 import {
   FIRST_WALL_LEVEL,
+  BASIC_EXERCISES,
+  EXERCISE_VARIATIONS,
   POSES,
-  QUESTS_BY_RANK,
+  REPS_BY_RANK,
   QUEST_IDS,
   QUEST_STAT,
   RANKS,
   RIVALS,
   TOTAL_LEVELS,
+  VARIATION_START_LEVEL,
   type PhysicalStat,
   type QuestId,
   type Rank,
@@ -52,7 +55,7 @@ export interface Result {
   events: GameEvent[];
 }
 
-const emptyProgress = (): Record<QuestId, number> => ({ push: 0, core: 0, legs: 0, run: 0 });
+export const emptyProgress = (): Record<QuestId, number> => ({ push: 0, core: 0, legs: 0, cross: 0 });
 
 export function todayKey(d = new Date()): string {
   const y = d.getFullYear();
@@ -129,12 +132,19 @@ export function rivalForLevel(levelIndex: number) {
   return RIVALS[Math.min(levelIndex, TOTAL_LEVELS - 1)] ?? RIVALS[0]!;
 }
 
+/** Exercise name for a quest: basic before D-1, then a new version every sub-level. */
+export function exerciseName(levelIndex: number, id: QuestId) {
+  const idx = Math.min(levelIndex, TOTAL_LEVELS - 1);
+  if (idx < VARIATION_START_LEVEL) return BASIC_EXERCISES[id];
+  const list = EXERCISE_VARIATIONS[id];
+  return list[Math.min(idx - VARIATION_START_LEVEL, list.length - 1)] ?? BASIC_EXERCISES[id];
+}
+
 export function questFor(levelIndex: number, id: QuestId) {
   const { rank, sub } = levelInfo(levelIndex);
-  const def = QUESTS_BY_RANK[rank][id];
-  const raw = def.base + def.step * (sub - 1);
-  const target = def.unit === "km" ? Math.round(raw * 10) / 10 : Math.round(raw);
-  return { id, name: def.name, unit: def.unit, target, stat: QUEST_STAT[id] };
+  const def = REPS_BY_RANK[rank][id];
+  const target = def.base + def.step * (sub - 1);
+  return { id, name: exerciseName(levelIndex, id), target, stat: QUEST_STAT[id] };
 }
 
 export function stats(s: GameState): Record<StatKey, number> {
@@ -191,7 +201,7 @@ export function canLog(s: GameState) {
 export function logQuest(s: GameState, id: QuestId, amount: number): Result {
   if (!canLog(s) || s.completed.includes(id)) return { state: s, events: [] };
   const q = questFor(s.levelIndex, id);
-  const value = Math.min(q.target, Math.round((s.progress[id] + amount) * 10) / 10);
+  const value = Math.min(q.target, (s.progress[id] ?? 0) + amount);
   let next: GameState = { ...s, progress: { ...s.progress, [id]: value } };
   const events: GameEvent[] = [];
   if (value < q.target) return { state: next, events };

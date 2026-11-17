@@ -5,8 +5,11 @@ export const TOTAL_LEVELS = 26;
 /** First level index that ends in a Calisthenics Boss Pose wall (D-1). */
 export const FIRST_WALL_LEVEL = 5;
 
-export type QuestId = "push" | "core" | "legs" | "run";
-export const QUEST_IDS: QuestId[] = ["push", "core", "legs", "run"];
+export type QuestId = "push" | "core" | "legs" | "cross";
+export const QUEST_IDS: QuestId[] = ["push", "core", "legs", "cross"];
+
+/** From this level index (D-1) on, every sub-level unlocks a new version of each exercise. */
+export const VARIATION_START_LEVEL = 5;
 
 export type PhysicalStat = "STR" | "VIT" | "AGI" | "END";
 export type StatKey = PhysicalStat | "PER" | "FOC";
@@ -15,57 +18,68 @@ export const QUEST_STAT: Record<QuestId, PhysicalStat> = {
   push: "STR",
   core: "VIT",
   legs: "AGI",
-  run: "END",
+  cross: "END",
 };
 
 export const STAT_INFO: Record<StatKey, { name: string; perk: string }> = {
   STR: { name: "Strength", perk: "Pushing power & upper-body force" },
   VIT: { name: "Vitality", perk: "Core stability & injury resistance" },
   AGI: { name: "Agility", perk: "Leg power, balance & explosiveness" },
-  END: { name: "Endurance", perk: "Cardio capacity & recovery speed" },
+  END: { name: "Endurance", perk: "Oblique strength & core stamina" },
   PER: { name: "Perception", perk: "Discipline — grows with your streak" },
   FOC: { name: "Neural Focus", perk: "Body control — earned from Boss Poses" },
 };
 
-type QuestDef = { name: string; base: number; step: number; unit: "reps" | "km" };
+type RepDef = { base: number; step: number };
 
-export const QUESTS_BY_RANK: Record<Rank, Record<QuestId, QuestDef>> = {
-  E: {
-    push: { name: "Push-ups", base: 20, step: 4, unit: "reps" },
-    core: { name: "Sit-ups", base: 20, step: 4, unit: "reps" },
-    legs: { name: "Squats", base: 30, step: 5, unit: "reps" },
-    run: { name: "Run", base: 2, step: 0.2, unit: "km" },
-  },
-  D: {
-    push: { name: "Diamond Push-ups", base: 30, step: 4, unit: "reps" },
-    core: { name: "Lying Leg Raises", base: 30, step: 4, unit: "reps" },
-    legs: { name: "Jump Squats", base: 40, step: 5, unit: "reps" },
-    run: { name: "Run", base: 3, step: 0.3, unit: "km" },
-  },
-  C: {
-    push: { name: "Archer Push-ups", base: 40, step: 4, unit: "reps" },
-    core: { name: "Hanging Knee Raises", base: 40, step: 4, unit: "reps" },
-    legs: { name: "Bulgarian Split Squats", base: 50, step: 5, unit: "reps" },
-    run: { name: "Run", base: 5, step: 0.3, unit: "km" },
-  },
-  B: {
-    push: { name: "Pseudo-Planche Push-ups", base: 50, step: 5, unit: "reps" },
-    core: { name: "Toes-to-Bar", base: 50, step: 5, unit: "reps" },
-    legs: { name: "Shrimp Squats", base: 60, step: 5, unit: "reps" },
-    run: { name: "Run", base: 7, step: 0.2, unit: "km" },
-  },
-  A: {
-    push: { name: "Clap Push-ups", base: 80, step: 5, unit: "reps" },
-    core: { name: "Dragon Flag Negatives", base: 60, step: 5, unit: "reps" },
-    legs: { name: "Pistol Squats", base: 80, step: 5, unit: "reps" },
-    run: { name: "Run", base: 8, step: 0.4, unit: "km" },
-  },
-  S: {
-    push: { name: "One-Arm Push-ups", base: 100, step: 0, unit: "reps" },
-    core: { name: "Dragon Flags", base: 100, step: 0, unit: "reps" },
-    legs: { name: "Pistol Squats", base: 100, step: 0, unit: "reps" },
-    run: { name: "Run", base: 10, step: 0, unit: "km" },
-  },
+/** Rep targets per rank: base at sub-level 1, +step for each later sub-level. */
+export const REPS_BY_RANK: Record<Rank, Record<QuestId, RepDef>> = {
+  E: { push: { base: 20, step: 4 }, core: { base: 20, step: 4 }, legs: { base: 30, step: 5 }, cross: { base: 20, step: 4 } },
+  D: { push: { base: 30, step: 4 }, core: { base: 30, step: 4 }, legs: { base: 40, step: 5 }, cross: { base: 30, step: 4 } },
+  C: { push: { base: 40, step: 4 }, core: { base: 40, step: 4 }, legs: { base: 50, step: 5 }, cross: { base: 40, step: 4 } },
+  B: { push: { base: 50, step: 5 }, core: { base: 50, step: 5 }, legs: { base: 60, step: 5 }, cross: { base: 50, step: 5 } },
+  A: { push: { base: 60, step: 5 }, core: { base: 60, step: 5 }, legs: { base: 70, step: 5 }, cross: { base: 60, step: 5 } },
+  S: { push: { base: 100, step: 0 }, core: { base: 100, step: 0 }, legs: { base: 100, step: 0 }, cross: { base: 100, step: 0 } },
+};
+
+/** Basic exercises used before new versions start unlocking. */
+export const BASIC_EXERCISES: Record<QuestId, string> = {
+  push: "Push-ups",
+  core: "Sit-ups",
+  legs: "Squats",
+  cross: "Cross Crunches",
+};
+
+/** One new version per sub-level, in order, starting at VARIATION_START_LEVEL (D-1 … A-5, then S). */
+export const EXERCISE_VARIATIONS: Record<QuestId, string[]> = {
+  push: [
+    "Wide Push-ups", "Diamond Push-ups", "Decline Push-ups", "Spiderman Push-ups", "Pike Push-ups",
+    "Archer Push-ups", "Hindu Push-ups", "Clap Push-ups", "Typewriter Push-ups", "Decline Diamond Push-ups",
+    "Staggered-Hand Push-ups", "Pseudo-Planche Push-ups", "Elevated Pike Push-ups", "Double-Clap Push-ups", "Assisted One-Arm Push-ups",
+    "Wall Handstand Push-ups", "Superman Push-ups", "Behind-the-Back Clap Push-ups", "Negative One-Arm Push-ups", "Deficit Handstand Push-ups",
+    "One-Arm Push-ups",
+  ],
+  core: [
+    "Butterfly Sit-ups", "Reverse Crunches", "Lying Leg Raises", "V-Ups", "Jackknife Sit-ups",
+    "Hollow Body Rocks", "Tuck-Ups", "Hanging Knee Raises", "Seated Leg Raises", "Decline Sit-ups",
+    "Hanging Leg Raises", "Lying Windshield Wipers", "Toes-to-Bar", "Kneeling Ab Wheel Rollouts", "Tuck L-Sit Raises",
+    "Dragon Flag Negatives", "Hanging Windshield Wipers", "Tuck Dragon Flags", "Strict Toes-to-Bar", "Standing Ab Wheel Rollouts",
+    "Dragon Flags",
+  ],
+  legs: [
+    "Sumo Squats", "Jump Squats", "Pause Squats", "Walking Lunges", "Split Squats",
+    "Bulgarian Split Squats", "Cossack Squats", "Jumping Lunges", "Skater Squats", "Single-Leg Box Squats",
+    "Shrimp Squats", "Sissy Squats", "Assisted Pistol Squats", "Jumping Bulgarian Split Squats", "Cossack Squat Jumps",
+    "Pistol Squats", "Advanced Shrimp Squats", "Elevated Pistol Squats", "Nordic Curl Negatives", "Jumping Pistol Squats",
+    "Dragon Pistol Squats",
+  ],
+  cross: [
+    "Bicycle Crunches", "Standing Cross Crunches", "Russian Twists", "Heel Touches", "Plank Cross Crunches",
+    "Mountain Climber Cross Crunches", "Oblique V-Ups", "Side Plank Crunches", "Twisting Sit-ups", "Spiderman Plank Crunches",
+    "Feet-Up Russian Twists", "Hanging Oblique Knee Raises", "Side Plank Reach-Throughs", "V-Up Cross Twists", "Kneeling Ab Wheel Diagonals",
+    "Hanging Oblique Leg Raises", "Side Plank Star Crunches", "Copenhagen Plank Crunches", "Hollow Body Cross Crunches", "Ab Wheel Diagonal Rollouts",
+    "Hanging Cross Crunches",
+  ],
 };
 
 export const RANK_TITLES: Record<Rank, { job: string; title: string }> = {

@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { toast } from "sonner";
-import { RIVALS } from "./data";
+import { QUEST_IDS, RIVALS, type QuestId } from "./data";
 import {
   createState,
   levelInfo,
@@ -23,13 +23,23 @@ function normalize(raw: unknown): GameState | null {
   if (!raw || typeof raw !== "object") return null;
   const base = createState(todayKey());
   const r = raw as Partial<GameState>;
+  // Older saves used a Running quest ("run"); carry its progress over to Cross Crunches.
+  const oldProgress = (r.progress ?? {}) as Record<string, number>;
+  const progress = { ...base.progress };
+  for (const id of QUEST_IDS) {
+    const v = id === "cross" ? (oldProgress["cross"] ?? oldProgress["run"]) : oldProgress[id];
+    progress[id] = typeof v === "number" && !Number.isNaN(v) ? Math.round(v) : 0;
+  }
+  const completed = (Array.isArray(r.completed) ? (r.completed as string[]) : [])
+    .map((q) => (q === "run" ? "cross" : q))
+    .filter((q): q is QuestId => (QUEST_IDS as string[]).includes(q));
   return {
     ...base,
     ...r,
     statPoints: { ...base.statPoints, ...(r.statPoints ?? {}) },
-    progress: { ...base.progress, ...(r.progress ?? {}) },
+    progress,
     poses: Array.isArray(r.poses) ? r.poses : [],
-    completed: Array.isArray(r.completed) ? r.completed : [],
+    completed: [...new Set(completed)],
   };
 }
 

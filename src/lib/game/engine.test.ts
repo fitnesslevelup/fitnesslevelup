@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { POSES, RIVALS, TOTAL_LEVELS } from "./data";
+import { POSES, QUEST_IDS, RIVALS, TOTAL_LEVELS } from "./data";
 import {
   certifyPose,
   createState,
+  questFor,
   levelInfo,
   logQuest,
   pointsPerQuest,
@@ -12,7 +13,7 @@ import {
 } from "./engine";
 
 function clearDay(s: GameState) {
-  for (const q of ["push", "core", "legs", "run"] as const) s = logQuest(s, q, 9999).state;
+  for (const q of ["push", "core", "legs", "cross"] as const) s = logQuest(s, q, 9999).state;
   return s;
 }
 
@@ -29,9 +30,9 @@ describe("game rules", () => {
   it("gives equal points for each quest, rising per sub-level", () => {
     const s = createState("2026-01-01");
     const a = logQuest(s, "push", 9999).events[0];
-    const b = logQuest(s, "run", 9999).events[0];
+    const b = logQuest(s, "cross", 9999).events[0];
     expect(a).toEqual({ type: "quest", quest: "push", points: 10 });
-    expect(b).toEqual({ type: "quest", quest: "run", points: 10 });
+    expect(b).toEqual({ type: "quest", quest: "cross", points: 10 });
     expect(pointsPerQuest(1)).toBeGreaterThan(pointsPerQuest(0));
   });
 
@@ -78,5 +79,29 @@ describe("game rules", () => {
     s = rollover(s, "2026-01-03").state;
     expect(s.streak).toBe(5);
     expect(s.perPoints).toBe(5);
+  });
+
+  it("daily quests are push-ups, sit-ups, squats and cross crunches (no running)", () => {
+    expect(QUEST_IDS).toEqual(["push", "core", "legs", "cross"]);
+    expect(questFor(0, "cross").name).toBe("Cross Crunches");
+    expect(QUEST_IDS.map((id) => questFor(0, id).name).join(" ")).not.toMatch(/\brun(ning)?\b/i);
+  });
+
+  it("E-Rank keeps the basic exercises", () => {
+    for (let i = 0; i < 5; i++) {
+      expect(questFor(i, "push").name).toBe("Push-ups");
+      expect(questFor(i, "cross").name).toBe("Cross Crunches");
+    }
+  });
+
+  it("every sub-level from D-1 to S unlocks a new version of all 4 exercises", () => {
+    for (const id of QUEST_IDS) {
+      const names = new Set<string>([questFor(4, id).name]);
+      for (let i = 5; i < TOTAL_LEVELS; i++) {
+        const name = questFor(i, id).name;
+        expect(names.has(name)).toBe(false);
+        names.add(name);
+      }
+    }
   });
 });

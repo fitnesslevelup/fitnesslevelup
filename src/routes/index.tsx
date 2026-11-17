@@ -144,7 +144,6 @@ function StatusPage() {
                     <span className={`flex-1 ${ok ? "text-muted-foreground line-through" : ""}`}>{q.name}</span>
                     <span className="font-display text-xs text-muted-foreground">
                       {q.target}
-                      {q.unit === "km" ? " km" : ""}
                     </span>
                   </li>
                 );

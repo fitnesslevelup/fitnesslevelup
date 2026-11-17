@@ -79,8 +79,8 @@ function QuestCard({ id }: { id: QuestId }) {
   const value = game.progress[id];
   const done = game.completed.includes(id);
   const locked = !canLog(game);
-  const steps = q.unit === "km" ? [0.5, 1] : [5, 10];
-  const fmt = (n: number) => (q.unit === "km" ? `${n.toFixed(1)} km` : `${n}`);
+  const steps = [5, 10];
+  const fmt = (n: number) => `${n}`;
 
   return (
     <div className={`system-panel p-5 transition-opacity ${done ? "border-success/60" : ""} ${locked && !done ? "opacity-50" : ""}`}>
@@ -106,7 +106,7 @@ function QuestCard({ id }: { id: QuestId }) {
           <>
             {steps.map((s) => (
               <Button key={s} variant="system" size="sm" disabled={locked} onClick={() => act((st) => logQuest(st, id, s))}>
-                +{q.unit === "km" ? `${s} km` : s}
+                +{s}
               </Button>
             ))}
             <Button variant="system" size="sm" disabled={locked} onClick={() => act((st) => logQuest(st, id, q.target))}>
