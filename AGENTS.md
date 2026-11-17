@@ -28,3 +28,8 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Project rules
+
+- Game rules live as pure functions in `src/lib/game/engine.ts` (data in `data.ts`) and are covered by `engine.test.ts`; UI never computes rules itself — keeps rules testable and in one place.
+- Progress is saved only in the browser's localStorage via `src/lib/game/store.ts` (read on the client, `null` during SSR); no backend — the player's data stays on their device.
