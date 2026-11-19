@@ -33,9 +33,9 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Status Window — ARISE Fitness System" },
-      { name: "description", content: "Your hunter status: level, rank, attributes, streak and next rival." },
+      { name: "description", content: "Your player status: level, rank, attributes, streak and next rival." },
       { property: "og:title", content: "Status Window — ARISE Fitness System" },
-      { property: "og:description", content: "Your hunter status: level, rank, attributes, streak and next rival." },
+      { property: "og:description", content: "Your player status: level, rank, attributes, streak and next rival." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

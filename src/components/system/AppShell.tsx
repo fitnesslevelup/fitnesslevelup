@@ -89,7 +89,7 @@ function AwakenDialog() {
             You have acquired the qualifications to be a Player.
           </DialogTitle>
           <DialogDescription>
-            Your journey to S-Rank takes about 100 days. Enter your hunter name to accept.
+            Your journey to S-Rank takes about 100 days. Enter your player name to accept.
           </DialogDescription>
         </DialogHeader>
         <form
@@ -103,8 +103,8 @@ function AwakenDialog() {
             autoFocus
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Hunter name"
-            aria-label="Hunter name"
+            placeholder="Player name"
+            aria-label="Player name"
             className="h-11 font-display tracking-widest"
           />
           <Button type="submit" variant="system" size="lg" disabled={!name.trim()}>

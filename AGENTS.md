@@ -33,3 +33,4 @@ use the editor.
 
 - Game rules live as pure functions in `src/lib/game/engine.ts` (data in `data.ts`) and are covered by `engine.test.ts`; UI never computes rules itself — keeps rules testable and in one place.
 - Progress is saved only in the browser's localStorage via `src/lib/game/store.ts` (read on the client, `null` during SSR); no backend — the player's data stays on their device.
+- Hosting stays zero-config: the build auto-detects its host (Lovable publish or Vercel via Nitro provider detection), so never hard-code a deploy preset or add host-specific config files — one codebase must deploy identically everywhere.

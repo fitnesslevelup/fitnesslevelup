@@ -4,6 +4,7 @@ import { QUEST_IDS, RIVALS, type QuestId } from "./data";
 import {
   createState,
   levelInfo,
+  questFor,
   rollover,
   todayKey,
   type GameEvent,
@@ -33,6 +34,11 @@ function normalize(raw: unknown): GameState | null {
   const completed = (Array.isArray(r.completed) ? (r.completed as string[]) : [])
     .map((q) => (q === "run" ? "cross" : q))
     .filter((q): q is QuestId => (QUEST_IDS as string[]).includes(q));
+  // A quest already marked complete always shows its full target.
+  const levelIndex = typeof r.levelIndex === "number" ? r.levelIndex : base.levelIndex;
+  for (const id of new Set(completed)) {
+    progress[id] = Math.max(progress[id], questFor(levelIndex, id).target);
+  }
   return {
     ...base,
     ...r,

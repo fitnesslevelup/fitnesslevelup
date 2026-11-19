@@ -83,7 +83,7 @@ export const EXERCISE_VARIATIONS: Record<QuestId, string[]> = {
 };
 
 export const RANK_TITLES: Record<Rank, { job: string; title: string }> = {
-  E: { job: "None", title: "The Weakest Hunter" },
+  E: { job: "None", title: "The Weakest Player" },
   D: { job: "Awakened", title: "Dungeon Survivor" },
   C: { job: "Necromancer", title: "Wolf Slayer" },
   B: { job: "Necromancer", title: "Knight Killer" },

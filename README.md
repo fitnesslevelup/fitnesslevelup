@@ -1,29 +1,21 @@
-# Welcome to your Lovable project
+# ARISE — Solo Leveling Fitness System
 
-This project was built with [Lovable](https://lovable.dev).
+Level up from E-Rank to S-Rank with 4 daily calisthenics quests, Boss Pose level walls, a rival ladder and a 21-pose trophy gallery. All progress is saved in the browser on the player's device.
 
-## Build with Lovable
+## Deploy on Vercel (no code changes needed)
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+1. Get this code into a GitHub repository (Lovable → Project settings → Git → Connect GitHub creates it and keeps it in sync).
+2. On vercel.com: **Add New → Project → Import** this repository.
+3. Leave every setting as Vercel suggests. No environment variables are needed.
+4. Click **Deploy**. Every new commit to the repository redeploys automatically.
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+The build detects Vercel by itself and produces Vercel's output format, so the live site matches the Lovable preview.
 
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+## Run locally
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
 npm i
 npm run dev
 ```
 
-## Built with
-
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
+Built with TanStack Start, React, TypeScript and Tailwind CSS.

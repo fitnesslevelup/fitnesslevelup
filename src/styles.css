@@ -65,8 +65,8 @@
   --color-gold: var(--gold);
   --color-gold-foreground: var(--gold-foreground);
   --color-success: var(--success);
-  --font-display: "Orbitron", ui-sans-serif, sans-serif;
-  --font-body: "Rajdhani", ui-sans-serif, sans-serif;
+  --font-display: "Cinzel", ui-serif, Georgia, serif;
+  --font-body: "Exo 2", ui-sans-serif, sans-serif;
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
