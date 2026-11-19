@@ -14,13 +14,61 @@ import {
 
 const KEY = "arise-system-v1";
 const BACKUP_KEY = "arise-system-v1-unreadable-backup";
+const UNSYNCED_KEY = "arise-system-v1-unsynced";
+let onLocalChange: ((s: GameState) => void) | null = null;
+
+/** Cloud sync registers here to hear about every local change. */
+export function setLocalChangeListener(fn: ((s: GameState) => void) | null) {
+  onLocalChange = fn;
+}
+
+function markChanged() {
+  try {
+    localStorage.setItem(UNSYNCED_KEY, "1");
+  } catch {
+    /* ignore */
+  }
+  if (state) onLocalChange?.(state);
+}
+
+/** True when this device has changes the cloud hasn't confirmed yet. */
+export function hasUnsyncedChanges() {
+  try {
+    return localStorage.getItem(UNSYNCED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function markSynced() {
+  try {
+    localStorage.removeItem(UNSYNCED_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+export function getState(): GameState {
+  return ensureLoaded();
+}
+
+/** Replace local progress with a copy from the cloud, then catch it up to today. */
+export function adoptState(raw: unknown) {
+  const next = normalize(raw);
+  if (!next) return;
+  const r = rollover(next, todayKey());
+  state = r.state;
+  persist();
+  emit();
+  announce(r.events);
+}
 let state: GameState | null = null;
 let wallOpen = false;
 let warnedSaveFail = false;
 const listeners = new Set<() => void>();
 
 /** Fill in any fields missing from an older or partial save instead of starting over. */
-function normalize(raw: unknown): GameState | null {
+export function normalize(raw: unknown): GameState | null {
   if (!raw || typeof raw !== "object") return null;
   const base = createState(todayKey());
   const r = raw as Partial<GameState>;
@@ -149,11 +197,14 @@ function latest(): GameState {
   return ensureLoaded();
 }
 
-export function act(fn: (s: GameState) => Result) {
-  const r = fn(latest());
+/** `quiet` changes (the automatic new-day check) are not pushed to the cloud on their own. */
+export function act(fn: (s: GameState) => Result, opts: { quiet?: boolean } = {}) {
+  const before = latest();
+  const r = fn(before);
   state = r.state;
   persist();
   emit();
+  if (r.state !== before && !opts.quiet) markChanged();
   announce(r.events);
 }
 
@@ -161,6 +212,7 @@ export function update(patch: Partial<GameState>) {
   state = { ...latest(), ...patch };
   persist();
   emit();
+  markChanged();
 }
 
 export function resetGame() {
@@ -168,11 +220,12 @@ export function resetGame() {
   state = createState(todayKey(), name);
   persist();
   emit();
+  markChanged();
   toast("[SYSTEM] Progress has been reset.");
 }
 
 export function checkDay() {
-  act((s) => rollover(s, todayKey()));
+  act((s) => rollover(s, todayKey()), { quiet: true });
 }
 
 function announce(events: GameEvent[]) {

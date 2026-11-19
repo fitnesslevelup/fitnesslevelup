@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
-import { Dumbbell, Gauge, Swords, Trophy } from "lucide-react";
+import { Cloud, CloudOff, Dumbbell, Gauge, Loader2, Swords, Trophy } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,18 +13,21 @@ import {
 } from "@/components/ui/dialog";
 import { act, checkDay, setWallOpen, update, useGame, useWallOpen } from "@/lib/game/store";
 import { certifyPose, levelInfo, poseForLevel } from "@/lib/game/engine";
+import { startCloudSync, useSyncInfo } from "@/lib/game/cloud-sync";
 
 const NAV = [
   { to: "/", label: "Status", icon: Gauge },
   { to: "/quests", label: "Quests", icon: Dumbbell },
   { to: "/rivals", label: "Rivals", icon: Swords },
   { to: "/gallery", label: "Poses", icon: Trophy },
+  { to: "/account", label: "Save", icon: Cloud },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Ask the browser to keep saved progress even when the device is low on space.
     void navigator.storage?.persist?.().catch(() => undefined);
+    startCloudSync();
     const id = window.setInterval(checkDay, 30_000);
     const onVis = () => document.visibilityState === "visible" && checkDay();
     document.addEventListener("visibilitychange", onVis);
@@ -41,6 +44,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Link to="/" className="font-display text-lg font-black tracking-[0.3em] text-primary text-glow">
             ARISE
           </Link>
+          <div className="flex items-center gap-2">
           <nav className="hidden gap-1 md:flex">
             {NAV.map((n) => (
               <Link
@@ -53,10 +57,12 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Link>
             ))}
           </nav>
+          <SyncBadge />
+          </div>
         </div>
       </header>
       <main className="mx-auto max-w-6xl px-4 py-6">{children}</main>
-      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-border bg-background/90 backdrop-blur md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-border bg-background/90 backdrop-blur md:hidden">
         {NAV.map((n) => (
           <Link
             key={n.to}
@@ -156,5 +162,26 @@ function WallDialog() {
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function SyncBadge() {
+  const sync = useSyncInfo();
+  const map = {
+    "signed-out": { icon: CloudOff, text: "Device only", cls: "text-muted-foreground" },
+    syncing: { icon: Loader2, text: "Saving…", cls: "text-primary [&_svg]:animate-spin" },
+    synced: { icon: Cloud, text: "Cloud saved", cls: "text-success" },
+    error: { icon: CloudOff, text: "Offline", cls: "text-destructive" },
+  } as const;
+  const m = map[sync.status];
+  return (
+    <Link
+      to="/account"
+      className={`flex items-center gap-1.5 border border-border px-2.5 py-1.5 font-display text-[0.65rem] uppercase tracking-[0.15em] ${m.cls}`}
+      aria-label={`Save status: ${m.text}`}
+    >
+      <m.icon className="h-3.5 w-3.5" />
+      {m.text}
+    </Link>
   );
 }
