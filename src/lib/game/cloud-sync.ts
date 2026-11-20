@@ -13,10 +13,11 @@ import {
 } from "./store";
 import { chooseCopy } from "./sync-rules";
 
-export type SyncStatus = "signed-out" | "syncing" | "synced" | "error";
+export type SyncStatus = "checking" | "signed-out" | "syncing" | "synced" | "error";
 type SyncInfo = { status: SyncStatus; email: string | null; lastSynced: number | null };
 
-let info: SyncInfo = { status: "signed-out", email: null, lastSynced: null };
+const INITIAL: SyncInfo = { status: "checking", email: null, lastSynced: null };
+let info: SyncInfo = INITIAL;
 let userId: string | null = null;
 let pushTimer: ReturnType<typeof setTimeout> | null = null;
 let started = false;
@@ -35,7 +36,7 @@ export function useSyncInfo(): SyncInfo {
       return () => listeners.delete(l);
     },
     () => info,
-    () => info,
+    () => INITIAL, // same value on server and during hydration
   );
 }
 
@@ -107,7 +108,10 @@ export async function syncNow() {
 
 function handleSession(session: Session | null) {
   const nextId = session?.user.id ?? null;
-  if (nextId === userId) return;
+  if (nextId === userId) {
+    if (!nextId && info.status === "checking") set({ status: "signed-out" });
+    return;
+  }
   userId = nextId;
   if (!nextId) {
     set({ status: "signed-out", email: null, lastSynced: null });

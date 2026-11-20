@@ -28,7 +28,15 @@ function AccountPage() {
   return (
     <div className="mx-auto max-w-md">
       <PageTitle kicker="Cloud Save" title="Train on Any Device" />
-      {sync.status === "signed-out" ? <AuthForm /> : <SignedIn />}
+      {sync.status === "checking" ? (
+        <div className="system-panel flex items-center justify-center p-10">
+          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+        </div>
+      ) : sync.status === "signed-out" ? (
+        <AuthForm />
+      ) : (
+        <SignedIn />
+      )}
     </div>
   );
 }

@@ -168,6 +168,7 @@ function WallDialog() {
 function SyncBadge() {
   const sync = useSyncInfo();
   const map = {
+    checking: { icon: Loader2, text: "Checking…", cls: "text-muted-foreground [&_svg]:animate-spin" },
     "signed-out": { icon: CloudOff, text: "Device only", cls: "text-muted-foreground" },
     syncing: { icon: Loader2, text: "Saving…", cls: "text-primary [&_svg]:animate-spin" },
     synced: { icon: Cloud, text: "Cloud saved", cls: "text-success" },

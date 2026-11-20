@@ -32,5 +32,6 @@ use the editor.
 ## Project rules
 
 - Game rules live as pure functions in `src/lib/game/engine.ts` (data in `data.ts`) and are covered by `engine.test.ts`; UI never computes rules itself — keeps rules testable and in one place.
-- Progress is saved only in the browser's localStorage via `src/lib/game/store.ts` (read on the client, `null` during SSR); no backend — the player's data stays on their device.
+- Progress is local-first: `src/lib/game/store.ts` keeps it in localStorage (read on the client, `null` during SSR) so guests can play offline; when signed in, `cloud-sync.ts` mirrors it to the `player_progress` table, and which copy wins is decided only in `sync-rules.ts` (tested) — so no device can silently roll progress back.
+- Sign-in is email/password only: OAuth sign-in relies on Lovable-hosted callback paths that don't exist on Vercel, and the app must work identically there.
 - Hosting stays zero-config: the build auto-detects its host (Lovable publish or Vercel via Nitro provider detection), so never hard-code a deploy preset or add host-specific config files — one codebase must deploy identically everywhere.
