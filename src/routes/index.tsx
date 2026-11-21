@@ -203,10 +203,10 @@ function StatusPage() {
         <section className="system-panel p-5">
           <p className="system-label">[ Next Boss Pose ]</p>
           <p className="mt-2 font-display text-lg text-gold">
-            {pose ? pose.name : done ? "All 21 mastered" : "Unlocks at D-1"}
+            {pose ? pose.name : done ? "All 21 mastered" : "Unlocks at E-5"}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            {pose ? pose.cue : done ? "Your gallery is complete." : "E-Rank levels clear without a wall."}
+            {pose ? pose.cue : done ? "Your gallery is complete." : "E-1 to E-4 clear without a wall."}
           </p>
           <Button asChild variant="gold" className="mt-4 w-full">
             <Link to="/gallery">Trophy gallery</Link>

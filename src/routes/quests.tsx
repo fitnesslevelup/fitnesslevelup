@@ -3,7 +3,7 @@ import { Check, Lock } from "lucide-react";
 import { Bar } from "@/components/system/Bar";
 import { Booting, PageTitle } from "@/components/system/Booting";
 import { Button } from "@/components/ui/button";
-import { QUEST_IDS, type QuestId } from "@/lib/game/data";
+import { QUEST_IDS, RANK_NAMES, type QuestId } from "@/lib/game/data";
 import { canLog, isComplete, levelInfo, logQuest, pointsPerQuest, poseForLevel, questFor } from "@/lib/game/engine";
 import { act, setWallOpen, useGame } from "@/lib/game/store";
 
@@ -30,7 +30,7 @@ function QuestsPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageTitle kicker={`Daily Quest · ${isComplete(game) ? "MAX" : info.label}`} title="Preparations to Become Powerful" />
+      <PageTitle kicker={`Daily Quest · ${isComplete(game) ? "MAX" : `${info.label} · ${RANK_NAMES[info.rank]}`}`} title="Preparations to Become Powerful" />
 
       {game.wall && (
         <div className="system-panel mb-6 flex flex-col gap-3 border-gold/60 p-4 sm:flex-row sm:items-center">
@@ -63,6 +63,11 @@ function QuestsPage() {
           Each quest grants <b className="text-foreground">+{pointsPerQuest(game.levelIndex)} pts</b>. Clear all 4 for
           Perception +1.
         </p>
+        {!isComplete(game) && (
+          <p>
+            Boss Pose this level: <b className="text-gold">{pose ? pose.name : info.rank === "S" ? "All 21 mastered" : "Locked"}</b>
+          </p>
+        )}
         {active && (
           <p className="text-destructive">
             WARNING: Failing to complete the daily quest resets your streak to Day 1 and lowers Perception.

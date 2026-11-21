@@ -1,15 +1,15 @@
 import {
   FIRST_WALL_LEVEL,
-  BASIC_EXERCISES,
-  EXERCISE_VARIATIONS,
+  EXERCISES_BY_LEVEL,
+  POINTS_BY_RANK,
   POSES,
-  REPS_BY_RANK,
   QUEST_IDS,
   QUEST_STAT,
   RANKS,
+  REP_START,
+  REP_STEP,
   RIVALS,
   TOTAL_LEVELS,
-  VARIATION_START_LEVEL,
   type PhysicalStat,
   type QuestId,
   type Rank,
@@ -20,6 +20,8 @@ export const QUESTS_PER_DAY = 4;
 export const DAYS_PER_LEVEL = 4;
 export const PER_PENALTY = 3;
 export const FOCUS_BONUS = 5;
+/** Quest points needed for +1 in a physical stat (keeps stats in balance with PER and Focus). */
+export const STAT_POINTS_PER_LEVEL = 180;
 
 export interface GameState {
   version: 1;
@@ -105,9 +107,9 @@ export function levelInfo(i: number): { rank: Rank; sub: number; label: string }
   return { rank, sub, label: `${rank}-${sub}` };
 }
 
-/** Points per quest: equal for all 4 quests, rising with every sub-level. */
+/** Points per quest: equal for all 4 quests, set by rank (E 25 … S 1000). */
 export function pointsPerQuest(levelIndex: number) {
-  return 10 + 5 * Math.min(levelIndex, TOTAL_LEVELS - 1);
+  return POINTS_BY_RANK[levelInfo(levelIndex).rank];
 }
 
 /** XP to clear a sub-level = 4 full days × 4 quests. */
@@ -132,23 +134,24 @@ export function rivalForLevel(levelIndex: number) {
   return RIVALS[Math.min(levelIndex, TOTAL_LEVELS - 1)] ?? RIVALS[0]!;
 }
 
-/** Exercise name for a quest: basic before D-1, then a new version every sub-level. */
+/** Exercise name for a quest at a level, straight from the level table. */
 export function exerciseName(levelIndex: number, id: QuestId) {
-  const idx = Math.min(levelIndex, TOTAL_LEVELS - 1);
-  if (idx < VARIATION_START_LEVEL) return BASIC_EXERCISES[id];
-  const list = EXERCISE_VARIATIONS[id];
-  return list[Math.min(idx - VARIATION_START_LEVEL, list.length - 1)] ?? BASIC_EXERCISES[id];
+  const list = EXERCISES_BY_LEVEL[id];
+  const idx = Math.max(0, Math.min(levelIndex, list.length - 1));
+  return list[idx] ?? list[0]!;
+}
+
+/** Reps per quest: 10 at E-1, +2 every level, 60 at S. */
+export function repsFor(levelIndex: number) {
+  return REP_START + REP_STEP * Math.max(0, Math.min(levelIndex, TOTAL_LEVELS - 1));
 }
 
 export function questFor(levelIndex: number, id: QuestId) {
-  const { rank, sub } = levelInfo(levelIndex);
-  const def = REPS_BY_RANK[rank][id];
-  const target = def.base + def.step * (sub - 1);
-  return { id, name: exerciseName(levelIndex, id), target, stat: QUEST_STAT[id] };
+  return { id, name: exerciseName(levelIndex, id), target: repsFor(levelIndex), stat: QUEST_STAT[id] };
 }
 
 export function stats(s: GameState): Record<StatKey, number> {
-  const phys = (p: number) => 10 + Math.floor(p / 60);
+  const phys = (p: number) => 10 + Math.floor(p / STAT_POINTS_PER_LEVEL);
   return {
     STR: phys(s.statPoints.STR),
     VIT: phys(s.statPoints.VIT),
@@ -192,6 +195,11 @@ export function rollover(s: GameState, date: string): Result {
     },
     events,
   };
+}
+
+/** A save frozen at a level that no longer has a Boss Pose is unfrozen; its next quest finishes the level. */
+export function repairWall(s: GameState): GameState {
+  return s.wall && !poseForLevel(s.levelIndex) ? { ...s, wall: false } : s;
 }
 
 export function canLog(s: GameState) {

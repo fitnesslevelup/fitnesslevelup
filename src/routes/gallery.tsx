@@ -9,9 +9,9 @@ export const Route = createFileRoute("/gallery")({
   head: () => ({
     meta: [
       { title: "Boss Pose Gallery — ARISE Fitness System" },
-      { name: "description", content: "Unlock all 21 elite calisthenics holds and movements, from Crow Pose to Full Planche." },
+      { name: "description", content: "Unlock all 21 elite calisthenics holds and movements, from L-Sit to Reverse Planche." },
       { property: "og:title", content: "Boss Pose Gallery — ARISE Fitness System" },
-      { property: "og:description", content: "Unlock all 21 elite calisthenics holds and movements, from Crow Pose to Full Planche." },
+      { property: "og:description", content: "Unlock all 21 elite calisthenics holds and movements, from L-Sit to Reverse Planche." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

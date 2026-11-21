@@ -2,14 +2,11 @@ export const RANKS = ["E", "D", "C", "B", "A", "S"] as const;
 export type Rank = (typeof RANKS)[number];
 
 export const TOTAL_LEVELS = 26;
-/** First level index that ends in a Calisthenics Boss Pose wall (D-1). */
-export const FIRST_WALL_LEVEL = 5;
+/** First level index that ends in a Calisthenics Boss Pose wall (E-5). Walls run E-5 … A-5; S has none. */
+export const FIRST_WALL_LEVEL = 4;
 
 export type QuestId = "push" | "core" | "legs" | "cross";
 export const QUEST_IDS: QuestId[] = ["push", "core", "legs", "cross"];
-
-/** From this level index (D-1) on, every sub-level unlocks a new version of each exercise. */
-export const VARIATION_START_LEVEL = 5;
 
 export type PhysicalStat = "STR" | "VIT" | "AGI" | "END";
 export type StatKey = PhysicalStat | "PER" | "FOC";
@@ -30,55 +27,54 @@ export const STAT_INFO: Record<StatKey, { name: string; perk: string }> = {
   FOC: { name: "Neural Focus", perk: "Body control — earned from Boss Poses" },
 };
 
-type RepDef = { base: number; step: number };
+/** Reps per quest: 10 at E-1, +2 every level (D-1 = 20 … A-5 = 58, S = 60). Same target for all 4 quests. */
+export const REP_START = 10;
+export const REP_STEP = 2;
 
-/** Rep targets per rank: base at sub-level 1, +step for each later sub-level. */
-export const REPS_BY_RANK: Record<Rank, Record<QuestId, RepDef>> = {
-  E: { push: { base: 20, step: 4 }, core: { base: 20, step: 4 }, legs: { base: 30, step: 5 }, cross: { base: 20, step: 4 } },
-  D: { push: { base: 30, step: 4 }, core: { base: 30, step: 4 }, legs: { base: 40, step: 5 }, cross: { base: 30, step: 4 } },
-  C: { push: { base: 40, step: 4 }, core: { base: 40, step: 4 }, legs: { base: 50, step: 5 }, cross: { base: 40, step: 4 } },
-  B: { push: { base: 50, step: 5 }, core: { base: 50, step: 5 }, legs: { base: 60, step: 5 }, cross: { base: 50, step: 5 } },
-  A: { push: { base: 60, step: 5 }, core: { base: 60, step: 5 }, legs: { base: 70, step: 5 }, cross: { base: 60, step: 5 } },
-  S: { push: { base: 100, step: 0 }, core: { base: 100, step: 0 }, legs: { base: 100, step: 0 }, cross: { base: 100, step: 0 } },
+/** Points per quest by rank (equal for all 4 quests). */
+export const POINTS_BY_RANK: Record<Rank, number> = { E: 25, D: 50, C: 100, B: 250, A: 500, S: 1000 };
+
+export const RANK_NAMES: Record<Rank, string> = {
+  E: "The Awakening",
+  D: "The Striker",
+  C: "The Vanguard",
+  B: "The Elite Knight",
+  A: "The National Hunter",
+  S: "The Shadow Monarch",
 };
 
-/** Basic exercises used before new versions start unlocking. */
-export const BASIC_EXERCISES: Record<QuestId, string> = {
-  push: "Push-ups",
-  core: "Sit-ups",
-  legs: "Squats",
-  cross: "Cross Crunches",
-};
+const E5 = (name: string) => [name, name, name, name, name];
+const A_AND_S = (name: string) => [name, name, name, name, name, name];
 
-/** One new version per sub-level, in order, starting at VARIATION_START_LEVEL (D-1 … A-5, then S). */
-export const EXERCISE_VARIATIONS: Record<QuestId, string[]> = {
+/** Exercise for every level, index 0 (E-1) … 25 (S). */
+export const EXERCISES_BY_LEVEL: Record<QuestId, string[]> = {
   push: [
-    "Wide Push-ups", "Diamond Push-ups", "Decline Push-ups", "Spiderman Push-ups", "Pike Push-ups",
-    "Archer Push-ups", "Hindu Push-ups", "Clap Push-ups", "Typewriter Push-ups", "Decline Diamond Push-ups",
-    "Staggered-Hand Push-ups", "Pseudo-Planche Push-ups", "Elevated Pike Push-ups", "Double-Clap Push-ups", "Assisted One-Arm Push-ups",
-    "Wall Handstand Push-ups", "Superman Push-ups", "Behind-the-Back Clap Push-ups", "Negative One-Arm Push-ups", "Deficit Handstand Push-ups",
-    "One-Arm Push-ups",
-  ],
-  core: [
-    "Butterfly Sit-ups", "Reverse Crunches", "Lying Leg Raises", "V-Ups", "Jackknife Sit-ups",
-    "Hollow Body Rocks", "Tuck-Ups", "Hanging Knee Raises", "Seated Leg Raises", "Decline Sit-ups",
-    "Hanging Leg Raises", "Lying Windshield Wipers", "Toes-to-Bar", "Kneeling Ab Wheel Rollouts", "Tuck L-Sit Raises",
-    "Dragon Flag Negatives", "Hanging Windshield Wipers", "Tuck Dragon Flags", "Strict Toes-to-Bar", "Standing Ab Wheel Rollouts",
-    "Dragon Flags",
+    ...E5("Normal Push-Up"),
+    "Shoulder Tap Push-Up", "Spiderman Push-Up", "Decline Push-Up", "Diamond Push-Up", "Medicine Ball Push-Up",
+    "Stability Ball Push-Up (Hands On)", "Stability Ball Push-Up (Feet On)", "TRX Push-Up", "Fingertip Push-Up", "Archer Push-Up",
+    "Hindu Push-Up", "Dive Bomber Push-Up", "Pseudo Planche Push-Up", "Plyometric / Clap Push-Up", "Single-Arm Push-Up",
+    ...A_AND_S("Superman Push-Up"),
   ],
   legs: [
-    "Sumo Squats", "Jump Squats", "Pause Squats", "Walking Lunges", "Split Squats",
-    "Bulgarian Split Squats", "Cossack Squats", "Jumping Lunges", "Skater Squats", "Single-Leg Box Squats",
-    "Shrimp Squats", "Sissy Squats", "Assisted Pistol Squats", "Jumping Bulgarian Split Squats", "Cossack Squat Jumps",
-    "Pistol Squats", "Advanced Shrimp Squats", "Elevated Pistol Squats", "Nordic Curl Negatives", "Jumping Pistol Squats",
-    "Dragon Pistol Squats",
+    ...E5("Normal Squat"),
+    "Frog Squat", "Curtsy Lunge Squat", "Cossack Squat", "Surfer Squat", "Bulgarian Split Squat",
+    "Skater Squat", "Tuck Jump Squat", "Single-Leg Bench Squat", "Shrimp Squat", "Sissy Squat",
+    "Jumping Lunge Squat", "Deck Squat (Rolling)", "180-Degree Jump Squat", "Dragon Squat", "Assisted Pistol Squat",
+    ...A_AND_S("Levitation Squat"),
+  ],
+  core: [
+    ...E5("Normal Sit-Up"),
+    "Heel Touch (Penguin Crunch)", "Tuck Crunch", "Suitcase Crunch", "Sprinter Sit-Up", "V-Up",
+    "Alternating V-Up", "Starfish Sit-Up", "Jackknife Sit-Up", "Lemon Squeezer", "Hollow Body Crunch",
+    "Slow Negative Sit-Up", "Bicycle Sit-Up", "Oblique V-Up", "Straddle V-Up", "L-Sit Crunch",
+    ...A_AND_S("Full Hollow Rock to V-Up"),
   ],
   cross: [
-    "Bicycle Crunches", "Standing Cross Crunches", "Russian Twists", "Heel Touches", "Plank Cross Crunches",
-    "Mountain Climber Cross Crunches", "Oblique V-Ups", "Side Plank Crunches", "Twisting Sit-ups", "Spiderman Plank Crunches",
-    "Feet-Up Russian Twists", "Hanging Oblique Knee Raises", "Side Plank Reach-Throughs", "V-Up Cross Twists", "Kneeling Ab Wheel Diagonals",
-    "Hanging Oblique Leg Raises", "Side Plank Star Crunches", "Copenhagen Plank Crunches", "Hollow Body Cross Crunches", "Ab Wheel Diagonal Rollouts",
-    "Hanging Cross Crunches",
+    ...E5("Normal Cross Crunch"),
+    "Spiderman Plank Crunch", "Side Plank Crunch", "Alternating Toe Touch", "Reverse Bicycle Crunch", "Starfish Crunch",
+    "Side V-Up", "Corkscrew Crunch", "Plank Knee-to-Elbow", "Cross-Body Mountain Climber", "Bent-Knee Windshield Wiper",
+    "Straight-Leg Windshield Wiper", "X-Man Crunch", "Oblique Jackknife", "Tornado Crunch", "Lying Cross-Body Toe Touch",
+    ...A_AND_S("Hanging Oblique Knee Raise"),
   ],
 };
 
@@ -121,27 +117,27 @@ export const RIVALS: { name: string; epithet: string }[] = [
   { name: "Statue of God", epithet: "Architect of the Double Dungeon" },
 ];
 
-/** 21 Calisthenics Boss Poses, one per level from D-1 to S. */
+/** 21 Calisthenics Boss Poses, one per level from E-5 to A-5. */
 export const POSES: { name: string; cue: string }[] = [
-  { name: "Crow Pose", cue: "Knees on triceps, balance on hands for 15s." },
-  { name: "Tuck L-Sit", cue: "Knees tucked, hips off the floor for 15s." },
-  { name: "Wall Handstand", cue: "Chest-to-wall handstand held for 30s." },
-  { name: "Skin the Cat", cue: "Controlled rotation on bar or rings, 3 reps." },
-  { name: "Tuck Back Lever", cue: "Tucked, body horizontal facing down, 10s." },
-  { name: "Full L-Sit", cue: "Legs straight and parallel to floor, 15s." },
-  { name: "Tuck Front Lever", cue: "Tucked, back flat facing up, 10s." },
-  { name: "Freestanding Handstand", cue: "No wall, hold a straight line for 15s." },
-  { name: "Pistol Squat", cue: "One full rep per leg, no support." },
-  { name: "Archer Pull-up", cue: "3 reps per side with the free arm straight." },
-  { name: "Tuck Planche", cue: "Knees tucked, feet off floor, arms locked, 10s." },
-  { name: "Muscle-up", cue: "One clean bar muscle-up, no kip." },
-  { name: "Full Back Lever", cue: "Straight body horizontal facing down, 5s." },
-  { name: "V-Sit", cue: "Legs raised above hip line, 10s." },
-  { name: "Dragon Flag", cue: "Straight-body lowering from the shoulders, 3 reps." },
+  { name: "L-Sit", cue: "Legs straight and parallel to the floor, hips up, 10s." },
+  { name: "Frogstand", cue: "Knees resting on elbows, balance on your hands for 15s." },
+  { name: "Elbow Lever", cue: "Body horizontal, balanced on bent elbows, 10s." },
+  { name: "Headstand", cue: "Tripod headstand, legs straight overhead, 30s." },
+  { name: "Back Lever", cue: "Body horizontal facing down on bar or rings, 5s." },
+  { name: "Muscle-Up", cue: "One clean bar muscle-up, no kip." },
+  { name: "Handstand", cue: "Freestanding straight-line handstand, 15s." },
   { name: "Human Flag", cue: "Body held sideways on a pole, 5s." },
-  { name: "Freestanding Handstand Push-up", cue: "One full rep, no wall." },
-  { name: "Straddle Planche", cue: "Legs straddled, body horizontal, 5s." },
-  { name: "One-Arm Pull-up", cue: "One clean rep from dead hang." },
-  { name: "Full Front Lever", cue: "Straight body horizontal facing up, 5s." },
+  { name: "Dragon Flag", cue: "Straight-body lowering from the shoulders, 3 reps." },
+  { name: "Front Lever", cue: "Straight body horizontal facing up, 5s." },
+  { name: "V-Sit", cue: "Legs raised above hip line, 10s." },
+  { name: "One-Arm Pull-Up", cue: "One clean rep from dead hang." },
+  { name: "Pistol Squat", cue: "One full rep per leg, no support." },
+  { name: "Archer Push-Up", cue: "3 reps per side with the free arm straight." },
+  { name: "One-Arm Push-Up", cue: "One full rep per arm, no knees down." },
+  { name: "Iron Cross", cue: "Arms straight out to the sides on rings, body vertical, 3s." },
   { name: "Full Planche", cue: "Legs together, body horizontal on locked arms, 3s." },
+  { name: "Maltese", cue: "Planche with arms wide, body near hand height, 3s." },
+  { name: "Victorian", cue: "Body horizontal facing up with arms pressed back, 2s." },
+  { name: "Manna", cue: "Legs straight forward, hips pushed behind your hands, 3s." },
+  { name: "Reverse Planche", cue: "Body horizontal facing up, held on straight arms behind you, 3s." },
 ];

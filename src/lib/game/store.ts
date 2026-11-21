@@ -5,6 +5,7 @@ import {
   createState,
   levelInfo,
   questFor,
+  repairWall,
   rollover,
   todayKey,
   type GameEvent,
@@ -87,14 +88,14 @@ export function normalize(raw: unknown): GameState | null {
   for (const id of new Set(completed)) {
     progress[id] = Math.max(progress[id], questFor(levelIndex, id).target);
   }
-  return {
+  return repairWall({
     ...base,
     ...r,
     statPoints: { ...base.statPoints, ...(r.statPoints ?? {}) },
     progress,
     poses: Array.isArray(r.poses) ? r.poses : [],
     completed: [...new Set(completed)],
-  };
+  });
 }
 
 function readSaved(): GameState | null {
